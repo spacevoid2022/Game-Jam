@@ -103,8 +103,15 @@ class GameScene extends Phaser.Scene {
 
         // Camera
         this.cameras.main.setBounds(0, 0, 150 * 40, 640); // 150 tiles * 40px
-        this.physics.world.setBounds(0, 0, 150 * 40, 640);
+        this.physics.world.setBounds(0, -500, 150 * 40, 2000); // Height to 2000 to allow falling past 640
         this.cameras.main.startFollow(this.player);
+
+        // Store Keys
+        this.tabKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TAB);
+        this.qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
+        this.rKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+        this.nKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.N);
+        this.keys = this.input.keyboard.addKeys('ONE,TWO,THREE,FOUR');
     }
 
     createUI() {
@@ -120,11 +127,25 @@ class GameScene extends Phaser.Scene {
             let heart = this.add.image(25 + (i * 35), 60, 'red_square').setScrollFactor(0);
             this.hearts.push(heart);
         }
+
+        this.shieldsUI = [];
+        for (let i = 0; i < 10; i++) {
+            let shield = this.add.rectangle(25 + (i * 35), 100, 25, 25, 0x0064ff).setScrollFactor(0);
+            shield.setVisible(false);
+            this.shieldsUI.push(shield);
+        }
+
+        this.createGameOverUI();
+        this.createStoreUI();
     }
 
     updateHealthUI() {
+        if (!this.hearts) return; // safety check
         for (let i = 0; i < this.maxHealth; i++) {
-            this.hearts[i].setVisible(i < this.health);
+            if (this.hearts[i]) this.hearts[i].setVisible(i < this.health);
+        }
+        for (let i = 0; i < 10; i++) {
+            if (this.shieldsUI[i]) this.shieldsUI[i].setVisible(i < this.player.shields);
         }
     }
 
@@ -153,21 +174,44 @@ class GameScene extends Phaser.Scene {
     }
 
     hitPlayer(player, bullet) {
-        bullet.destroy();
-        this.health--;
+        if (bullet) bullet.destroy();
+
+        if (this.player.shields > 0) {
+            this.player.shields--;
+        } else {
+            this.health--;
+        }
+
         this.updateHealthUI();
         this.sound.play('shot'); // Hit damage sound
 
         if (this.health <= 0) {
-            this.currentState = this.GAME_STATES.GAME_OVER;
-            // Immediate respawn logic to prevent blocking
-            setTimeout(() => {
-                this.health = 10;
-                this.updateHealthUI();
-                this.player.setPosition(100, 100);
-                this.currentState = this.GAME_STATES.PLAYING;
-            }, 1000);
+            this.die();
         }
+    }
+
+    die() {
+        this.health = 0;
+        this.updateHealthUI();
+        this.currentState = this.GAME_STATES.GAME_OVER;
+        this.gameOverUI.setVisible(true);
+    }
+
+    resetGame() {
+        this.kills = 0;
+        this.scoreText.setText('Kills: 0');
+        this.health = 10;
+        if (this.player) {
+            this.player.shields = 0;
+            this.player.maxShields = 0;
+            this.player.extraJumps = 0;
+            this.player.regenLevel = 0;
+            this.player.extraBullets = 0;
+            this.player.setPosition(100, 100);
+        }
+        this.updateHealthUI();
+        this.gameOverUI.setVisible(false);
+        this.currentState = this.GAME_STATES.PLAYING;
     }
 
     createAnimations() {
@@ -228,13 +272,79 @@ class GameScene extends Phaser.Scene {
     }
 
     update(time, delta) {
+        if (Phaser.Input.Keyboard.JustDown(this.tabKey)) {
+            if (this.currentState === this.GAME_STATES.PLAYING) {
+                this.currentState = this.GAME_STATES.STORE;
+                this.storeUI.setVisible(true);
+            } else if (this.currentState === this.GAME_STATES.STORE) {
+                this.currentState = this.GAME_STATES.PLAYING;
+                this.storeUI.setVisible(false);
+            }
+        }
+
+        if (this.currentState === this.GAME_STATES.STORE) {
+            if (Phaser.Input.Keyboard.JustDown(this.keys.ONE) && this.kills >= 5) {
+                this.kills -= 5;
+                this.player.extraJumps++;
+                this.scoreText.setText('Kills: ' + this.kills);
+            }
+            if (Phaser.Input.Keyboard.JustDown(this.keys.TWO) && this.kills >= 10) {
+                this.kills -= 10;
+                this.player.regenLevel++;
+                this.scoreText.setText('Kills: ' + this.kills);
+            }
+            if (Phaser.Input.Keyboard.JustDown(this.keys.THREE) && this.kills >= 15) {
+                this.kills -= 15;
+                this.player.extraBullets++;
+                this.scoreText.setText('Kills: ' + this.kills);
+            }
+            if (Phaser.Input.Keyboard.JustDown(this.keys.FOUR) && this.kills >= 20) {
+                this.kills -= 20;
+                this.player.maxShields++;
+                this.player.shields++;
+                this.updateHealthUI();
+                this.scoreText.setText('Kills: ' + this.kills);
+            }
+        }
+
+        if (this.currentState === this.GAME_STATES.STORE || this.currentState === this.GAME_STATES.PLAYING || this.currentState === this.GAME_STATES.GAME_OVER) {
+            if (Phaser.Input.Keyboard.JustDown(this.qKey)) {
+                this.die();
+            }
+            if (Phaser.Input.Keyboard.JustDown(this.rKey)) {
+                this.resetGame();
+            }
+        }
+
+        if (this.currentState === this.GAME_STATES.LEVEL_COMPLETE) {
+            if (Phaser.Input.Keyboard.JustDown(this.nKey)) {
+                if (this.currentLevel < 3) {
+                    this.currentLevel++;
+                    this.scene.restart();
+                } else {
+                    this.currentState = this.GAME_STATES.GAME_BEATEN;
+                }
+            }
+        }
+
         if (this.currentState === this.GAME_STATES.PLAYING) {
+            // Level completion check (150 tiles * 40px = 6000px)
+            if (this.player.x > (150 * 40) - 150) {
+                this.currentState = this.GAME_STATES.LEVEL_COMPLETE;
+                this.add.text(400, 320, 'LEVEL COMPLETE!\nPress N for Next Level', { fontSize: '48px', fill: '#ffff00', align: 'center' }).setOrigin(0.5).setScrollFactor(0);
+            }
+
+            // Death by falling
+            if (this.player.y > 640) {
+                this.die();
+            }
+
             // Dynamic Spawning
             this.spawnTimer = (this.spawnTimer || 0) + 1;
             if (this.spawnTimer >= 360) {
                 this.spawnTimer = 0;
                 let spawnX = this.cameras.main.scrollX + Phaser.Math.Between(850, 1000);
-                let newEnemy = new Enemy(this, spawnX, -50);
+                let newEnemy = new Enemy(this, spawnX, 0); // Spawn at top of visible area
                 this.enemies.add(newEnemy);
             }
 
@@ -242,7 +352,10 @@ class GameScene extends Phaser.Scene {
                 this.player.update();
             }
             if (this.enemies) {
-                this.enemies.getChildren().forEach(enemy => enemy.update());
+                this.enemies.getChildren().forEach(enemy => {
+                    enemy.update();
+                    if (enemy.y > 700) enemy.destroy(); // Destroy enemies that fall off
+                });
             }
             if (this.playerBullets) {
                 this.playerBullets.getChildren().forEach(bullet => bullet.update());
@@ -258,5 +371,28 @@ class GameScene extends Phaser.Scene {
             this.pine1Bg.tilePositionX = camX * 0.7;
             this.pine2Bg.tilePositionX = camX * 0.8;
         }
+    }
+
+    createGameOverUI() {
+        this.gameOverUI = this.add.container(400, 320).setScrollFactor(0).setVisible(false);
+        let bg = this.add.rectangle(0, 0, 800, 640, 0x000000, 0.8);
+        let title = this.add.text(0, -50, 'GAME OVER', { fontSize: '64px', fill: '#ff0000' }).setOrigin(0.5);
+        let sub = this.add.text(0, 50, 'Press R to Respawn', { fontSize: '32px', fill: '#ffffff' }).setOrigin(0.5);
+        this.gameOverUI.add([bg, title, sub]);
+        this.gameOverUI.setDepth(200);
+    }
+
+    createStoreUI() {
+        this.storeUI = this.add.container(400, 300).setScrollFactor(0).setVisible(false);
+        let bg = this.add.rectangle(0, 0, 400, 300, 0x000000, 0.7);
+        let title = this.add.text(0, -120, 'UPGRADE MENU', { fontSize: '32px', fill: '#ffff00' }).setOrigin(0.5);
+        let item1 = this.add.text(0, -60, '1. Extra Jump (5 Kills)', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5);
+        let item2 = this.add.text(0, -20, '2. Health Regen (10 Kills)', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5);
+        let item3 = this.add.text(0, 20, '3. Extra Bullets (15 Kills)', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5);
+        let item4 = this.add.text(0, 60, '4. Max Shields (20 Kills)', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5);
+        let footer = this.add.text(0, 120, 'Press TAB to Close', { fontSize: '18px', fill: '#aaa' }).setOrigin(0.5);
+
+        this.storeUI.add([bg, title, item1, item2, item3, item4, footer]);
+        this.storeUI.setDepth(100);
     }
 }

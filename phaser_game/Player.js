@@ -10,6 +10,11 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.speed = 300;
         this.jumpsLeft = 1;
         this.extraJumps = 0;
+        this.regenLevel = 0;
+        this.extraBullets = 0;
+        this.shields = 0;
+        this.maxShields = 0;
+        this.regenTimer = 0;
 
         // Input
         this.cursors = scene.input.keyboard.addKeys('W,A,S,D');
@@ -44,6 +49,10 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
             // Shoot bullet
             this.scene.shootBullet(this.x, this.y, this.flipX ? -1 : 1, true);
+
+            for (let i = 0; i < this.extraBullets; i++) {
+                this.scene.shootBullet(this.x, this.y - (15 * (i + 1)), this.flipX ? -1 : 1, true);
+            }
         }
 
         if (this.body.blocked.down) {
@@ -51,6 +60,22 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         } else if (this.body.velocity.y > 0) {
             // falling optionally could have a fall frame, but jump frame 0 works for now
             this.anims.play('player_jump', true);
+        }
+
+        // Regeneration logic
+        if (this.regenLevel > 0) {
+            this.regenTimer++;
+            let threshold = Math.max(60, 300 - (60 * (this.regenLevel - 1)));
+            if (this.regenTimer >= threshold) {
+                if (this.scene.health < 10) {
+                    this.scene.health++;
+                    this.scene.updateHealthUI();
+                } else if (this.shields < this.maxShields) {
+                    this.shields++;
+                    this.scene.updateHealthUI();
+                }
+                this.regenTimer = 0;
+            }
         }
     }
 }

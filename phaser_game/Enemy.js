@@ -45,24 +45,26 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
         const visionWidth = 150;
         const visionHeight = 20;
 
-        // Calculate vision rect
+        // Calculate vision rect (Higher up near 'eyes' area, starting from edge)
         let visionRect;
+        let visionY = this.y - (this.displayHeight * 0.8);
+        let halfWidth = this.displayWidth / 2;
         if (this.direction === 1) {
-            visionRect = new Phaser.Geom.Rectangle(this.x + (this.width / 2), this.y - (visionHeight / 2), visionWidth, visionHeight);
+            visionRect = new Phaser.Geom.Rectangle(this.x + halfWidth, visionY, visionWidth, visionHeight);
         } else {
-            visionRect = new Phaser.Geom.Rectangle(this.x - (this.width / 2) - visionWidth, this.y - (visionHeight / 2), visionWidth, visionHeight);
+            visionRect = new Phaser.Geom.Rectangle(this.x - halfWidth - visionWidth, visionY, visionWidth, visionHeight);
         }
 
         // Check if player in vision
-        const playerRect = new Phaser.Geom.Rectangle(player.x - (player.width / 2), player.y - (player.height / 2), player.width, player.height);
+        const playerRect = new Phaser.Geom.Rectangle(player.x - (player.displayWidth / 2), player.y - player.displayHeight, player.displayWidth, player.displayHeight);
 
-        if (Phaser.Geom.Intersects.RectangleToRectangle(visionRect, playerRect) && player.body.y < 640) { // check if player is "alive" approx
+        if (Phaser.Geom.Intersects.RectangleToRectangle(visionRect, playerRect) && player.y < 640) { // check if player is "alive" approx
             this.idling = true;
             this.idlingCounter = 20;
 
             if (this.shootCooldown === 0) {
                 this.shootCooldown = 240;
-                this.scene.shootBullet(this.x, this.y, this.direction, false);
+                this.scene.shootBullet(this.x + (halfWidth * this.direction), this.y - (this.displayHeight * 0.5), this.direction, false);
             }
         }
 
@@ -84,20 +86,22 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
             }
         }
 
-        // Ledge detection (when on ground)
+        // Ledge detection (only when on ground)
         if (this.body.blocked.down && this.body.velocity.x !== 0) {
-            const ledgeCheckX = this.direction === 1 ? this.body.right + 20 : this.body.left - 20;
-            const ledgeCheckY = this.body.bottom + 5;
+            const ledgeCheckX = this.direction === 1 ? this.x + 20 : this.x - 20;
+            const ledgeCheckY = this.y + 10; // slightly below feet (origin set to 1)
 
-            // Simple raycast to check if there is a tile below the next step
-            const tile = scene.obstacles.getChildren().find(t =>
-                t.body.hitTest(ledgeCheckX, ledgeCheckY)
-            );
+            let hasGround = false;
+            scene.obstacles.getChildren().forEach(tile => {
+                if (Phaser.Geom.Rectangle.Contains(tile.getBounds(), ledgeCheckX, ledgeCheckY)) {
+                    hasGround = true;
+                }
+            });
 
-            if (!tile) {
+            if (!hasGround) {
                 this.direction *= -1;
                 this.moveCounter = 0;
-                this.setVelocityX(0); // Stop horizontal movement to prevent falling
+                this.setVelocityX(0);
             }
         }
 
