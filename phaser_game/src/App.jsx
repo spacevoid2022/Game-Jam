@@ -6,7 +6,7 @@ function App() {
     return (
         <div className="App">
             <header className="App-header">
-                <h1>Hilltop Rampage v1.2 (Multi-Touch)</h1>
+                <h1>Hilltop Rampage v1.3 (Wide & Respawn)</h1>
             </header>
             <main>
                 <PhaserGame />
