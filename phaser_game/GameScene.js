@@ -322,27 +322,34 @@ class GameScene extends Phaser.Scene {
             if (this.currentState === this.GAME_STATES.PLAYING) {
                 this.currentState = this.GAME_STATES.STORE;
                 this.storeUI.setVisible(true);
+                this.physics.world.pause(); // Pause AI and movement
+                this.updateStoreTexts();
             } else if (this.currentState === this.GAME_STATES.STORE) {
                 this.currentState = this.GAME_STATES.PLAYING;
                 this.storeUI.setVisible(false);
+                this.physics.world.resume(); // Resume game
             }
         }
 
         if (this.currentState === this.GAME_STATES.STORE) {
+            // Check for 1, 2, 3, 4 inputs for purchases
             if (Phaser.Input.Keyboard.JustDown(this.keys.ONE) && this.kills >= 5) {
                 this.kills -= 5;
                 this.player.extraJumps++;
                 this.scoreText.setText('Kills: ' + this.kills);
+                this.updateStoreTexts(); // Refresh UI feedback
             }
             if (Phaser.Input.Keyboard.JustDown(this.keys.TWO) && this.kills >= 10) {
                 this.kills -= 10;
                 this.player.regenLevel++;
                 this.scoreText.setText('Kills: ' + this.kills);
+                this.updateStoreTexts();
             }
             if (Phaser.Input.Keyboard.JustDown(this.keys.THREE) && this.kills >= 15) {
                 this.kills -= 15;
                 this.player.extraBullets++;
                 this.scoreText.setText('Kills: ' + this.kills);
+                this.updateStoreTexts();
             }
             if (Phaser.Input.Keyboard.JustDown(this.keys.FOUR) && this.kills >= 20) {
                 this.kills -= 20;
@@ -350,6 +357,7 @@ class GameScene extends Phaser.Scene {
                 this.player.shields++;
                 this.updateHealthUI();
                 this.scoreText.setText('Kills: ' + this.kills);
+                this.updateStoreTexts();
             }
         }
 
@@ -447,15 +455,42 @@ class GameScene extends Phaser.Scene {
 
     createStoreUI() {
         this.storeUI = this.add.container(400, 300).setScrollFactor(0).setVisible(false);
-        let bg = this.add.rectangle(0, 0, 400, 300, 0x000000, 0.7);
-        let title = this.add.text(0, -120, 'UPGRADE MENU', { fontSize: '32px', fill: '#ffff00' }).setOrigin(0.5);
-        let item1 = this.add.text(0, -60, '1. Extra Jump (5 Kills)', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5);
-        let item2 = this.add.text(0, -20, '2. Health Regen (10 Kills)', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5);
-        let item3 = this.add.text(0, 20, '3. Extra Bullets (15 Kills)', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5);
-        let item4 = this.add.text(0, 60, '4. Max Shields (20 Kills)', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5);
-        let footer = this.add.text(0, 120, 'Press TAB to Close', { fontSize: '18px', fill: '#aaa' }).setOrigin(0.5);
+        let bg = this.add.rectangle(0, 0, 800, 600, 0x000000, 0.85); // Full screen overlay
+        let frame = this.add.rectangle(0, 0, 500, 400, 0x333333, 1).setStrokeStyle(4, 0xffff00);
 
-        this.storeUI.add([bg, title, item1, item2, item3, item4, footer]);
+        let title = this.add.text(0, -150, 'UPGRADE SHOP (PAUSED)', { fontSize: '40px', fill: '#ffff00', fontStyle: 'bold' }).setOrigin(0.5);
+
+        this.storeItems = {
+            extraJumps: this.add.text(0, -80, '1. Extra Jump (5 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5),
+            regenLevel: this.add.text(0, -30, '2. Health Regen (10 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5),
+            extraBullets: this.add.text(0, 20, '3. Extra Bullets (15 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5),
+            maxShields: this.add.text(0, 70, '4. Max Shields (20 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5)
+        };
+
+        let hint = this.add.text(0, 140, 'Press [1-4] to Purchase', { fontSize: '20px', fill: '#ffff00' }).setOrigin(0.5);
+        let footer = this.add.text(0, 175, 'Press TAB to Resume Game', { fontSize: '18px', fill: '#aaa' }).setOrigin(0.5);
+
+        this.storeUI.add([bg, frame, title, this.storeItems.extraJumps, this.storeItems.regenLevel, this.storeItems.extraBullets, this.storeItems.maxShields, hint, footer]);
         this.storeUI.setDepth(100);
+    }
+
+    updateStoreTexts() {
+        if (!this.storeItems) return;
+        this.storeItems.extraJumps.setText(`1. Extra Jump (5 Kills) - Lv: ${this.player.extraJumps}`);
+        this.storeItems.regenLevel.setText(`2. Health Regen (10 Kills) - Lv: ${this.player.regenLevel}`);
+        this.storeItems.extraBullets.setText(`3. Extra Bullets (15 Kills) - Lv: ${this.player.extraBullets}`);
+        this.storeItems.maxShields.setText(`4. Max Shields (20 Kills) - Lv: ${this.player.maxShields}`);
+
+        // Visual feedback for affordability
+        const items = [
+            { txt: this.storeItems.extraJumps, cost: 5 },
+            { txt: this.storeItems.regenLevel, cost: 10 },
+            { txt: this.storeItems.extraBullets, cost: 15 },
+            { txt: this.storeItems.maxShields, cost: 20 }
+        ];
+
+        items.forEach(item => {
+            item.txt.setFill(this.kills >= item.cost ? '#00ff00' : '#ff4444');
+        });
     }
 }
