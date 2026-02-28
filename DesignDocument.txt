@@ -1,0 +1,122 @@
+I have an existing Pygame project that I want to convert to Phaser 3, and then wrap inside a React app using Vite.
+
+You must follow these strict rules:
+
+GLOBAL RULES
+- DO NOT rewrite everything at once.
+- Convert incrementally.
+- Each step must be small enough to justify a clean git commit.
+- After each step, output:
+    - What changed
+    - Why it changed
+    - The exact commit message I should use
+
+- Preserve gameplay logic exactly unless absolutely necessary.
+- Do not optimize or refactor unless required for Phaser compatibility.
+- Wait for my confirmation before moving to the next step.
+
+PHASE 1 — Analysis (No Code Changes)
+
+1. Analyze my Pygame code.
+2. Identify:
+    - Game loop structure
+    - State management
+    - Sprites
+    - Collision logic
+    - Input handling
+    - Asset loading
+
+3. Map each Pygame concept to its Phaser equivalent.
+4. Produce a conversion plan broken into small commits.
+
+Do NOT generate Phaser code yet.
+
+Stop and wait.
+
+PHASE 2 — Create Base Phaser Project (Commit 1)
+
+1. Generate a minimal Phaser 3 project structure:
+    - index.html
+    - main.js
+    - GameScene.js
+2. Create an empty Phaser scene that runs.
+3. No gameplay yet.
+
+Output:
+    - Folder structure
+    - Full code for each file
+    - Commit message
+
+Stop and wait.
+
+PHASE 3 — Port Core Game Loop Logic (Commit 2+)
+
+Convert these Pygame concepts one at a time:
+
+1. Replace Pygame main loop with Phaser scene lifecycle:
+    - preload()
+    - create()
+    - update()
+2. Port:
+    - Asset loading
+    - Player sprite
+    - Basic movement
+    - Collision
+    - Game state variables
+
+Each feature must be its own commit-sized step.
+
+After each feature:
+    - Show only changed files
+    - Provide commit message
+    - Wait for confirmation
+
+PHASE 4 — Full Feature Parity
+
+Continue converting:
+ - Enemies
+ - UI
+ - Score
+ - Timers
+ - Sound
+ - Animations
+
+One system per commit.
+No large merges.
+
+PHASE 5 — Wrap in React Using Vite
+
+Once the Phaser version is complete and tested:
+
+- Initialize a new React project using Vite (not Create React App).
+- Use the latest stable React template.
+- Install Phaser as a dependency.
+- Keep Phaser game code in a separate /game directory.
+- Mount Phaser inside a dedicated <Game /> React component.
+Ensure:
+- Proper cleanup on component unmount
+- No unnecessary React re-renders affecting Phaser
+- Do NOT rewrite Phaser logic during React integration.
+
+Commit checkpoints:
+- Vite project initialized
+- React cleaned to minimal template
+- Phaser installed
+- Phaser mounted inside <Game />
+- Responsive canvas handling
+- Production build configuration verified
+
+Setup Commands:
+- npm create vite@latest my-game
+- cd my-game
+- npm install
+- npm install phaser
+
+OUTPUT FORMAT RULE
+Every step must end with:
+    - Summary of Changes
+    - Files Modified
+    - Commit Message
+    - Next Step
+
+Then STOP.
