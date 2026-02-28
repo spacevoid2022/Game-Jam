@@ -135,7 +135,104 @@ export default class GameScene extends Phaser.Scene {
         this.nKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.N);
         this.keys = this.input.keyboard.addKeys('ONE,TWO,THREE,FOUR');
 
+        this.createTouchControls();
+
         this.updateHealthUI();
+    }
+
+    createTouchControls() {
+        // Only show if it's potentially a touch device
+        // if (!this.sys.game.device.input.touch) return; 
+
+        const width = 800;
+        const height = 640;
+
+        // Left Button
+        this.leftBtn = this.add.circle(60, height - 60, 40, 0x333333, 0.5)
+            .setInteractive()
+            .setScrollFactor(0)
+            .setDepth(1000);
+        this.add.text(60, height - 60, '<', { fontSize: '40px', fill: '#fff' })
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(1001);
+
+        // Right Button
+        this.rightBtn = this.add.circle(160, height - 60, 40, 0x333333, 0.5)
+            .setInteractive()
+            .setScrollFactor(0)
+            .setDepth(1000);
+        this.add.text(160, height - 60, '>', { fontSize: '40px', fill: '#fff' })
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(1001);
+
+        // Jump Button
+        this.jumpBtn = this.add.circle(width - 160, height - 60, 40, 0x333333, 0.5)
+            .setInteractive()
+            .setScrollFactor(0)
+            .setDepth(1000);
+        this.add.text(width - 160, height - 60, 'J', { fontSize: '40px', fill: '#fff' })
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(1001);
+
+        // Shoot Button
+        this.shootBtn = this.add.circle(width - 60, height - 60, 40, 0x333333, 0.5)
+            .setInteractive()
+            .setScrollFactor(0)
+            .setDepth(1000);
+        this.add.text(width - 60, height - 60, 'S', { fontSize: '40px', fill: '#fff' })
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(1001);
+
+        // Shop Toggle Button (Top Right)
+        this.shopBtn = this.add.rectangle(width - 60, 40, 80, 40, 0x333333, 0.5)
+            .setInteractive()
+            .setScrollFactor(0)
+            .setDepth(1000);
+        this.add.text(width - 60, 40, 'SHOP', { fontSize: '20px', fill: '#fff' })
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(1001);
+
+        // Track states
+        this.touchControls = {
+            left: false,
+            right: false,
+            jump: false,
+            shoot: false
+        };
+
+        this.leftBtn.on('pointerdown', () => this.touchControls.left = true);
+        this.leftBtn.on('pointerup', () => this.touchControls.left = false);
+        this.leftBtn.on('pointerout', () => this.touchControls.left = false);
+
+        this.rightBtn.on('pointerdown', () => this.touchControls.right = true);
+        this.rightBtn.on('pointerup', () => this.touchControls.right = false);
+        this.rightBtn.on('pointerout', () => this.touchControls.right = false);
+
+        this.jumpBtn.on('pointerdown', () => this.touchControls.jump = true);
+        this.jumpBtn.on('pointerup', () => this.touchControls.jump = false);
+        this.jumpBtn.on('pointerout', () => this.touchControls.jump = false);
+
+        this.shootBtn.on('pointerdown', () => this.touchControls.shoot = true);
+        this.shootBtn.on('pointerup', () => this.touchControls.shoot = false);
+        this.shootBtn.on('pointerout', () => this.touchControls.shoot = false);
+
+        this.shopBtn.on('pointerdown', () => {
+            if (this.currentState === this.GAME_STATES.PLAYING) {
+                this.currentState = this.GAME_STATES.STORE;
+                this.storeUI.setVisible(true);
+                this.physics.world.pause();
+                this.updateStoreTexts();
+            } else if (this.currentState === this.GAME_STATES.STORE) {
+                this.currentState = this.GAME_STATES.PLAYING;
+                this.storeUI.setVisible(false);
+                this.physics.world.resume();
+            }
+        });
     }
 
     createUI() {

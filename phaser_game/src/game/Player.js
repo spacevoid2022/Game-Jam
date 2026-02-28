@@ -26,11 +26,14 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     update() {
-        if (this.cursors.A.isDown) {
+        const moveLeft = this.cursors.A.isDown || (this.scene.touchControls && this.scene.touchControls.left);
+        const moveRight = this.cursors.D.isDown || (this.scene.touchControls && this.scene.touchControls.right);
+
+        if (moveLeft) {
             this.setVelocityX(-this.speed);
             this.setFlipX(true);
             if (this.body.blocked.down) this.anims.play('player_run', true);
-        } else if (this.cursors.D.isDown) {
+        } else if (moveRight) {
             this.setVelocityX(this.speed);
             this.setFlipX(false);
             if (this.body.blocked.down) this.anims.play('player_run', true);
@@ -39,8 +42,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
             if (this.body.blocked.down) this.anims.play('player_idle', true);
         }
 
-        const isJustDown = Phaser.Input.Keyboard.JustDown(this.cursors.W);
-        if (isJustDown && (this.body.blocked.down || this.jumpsLeft > 0)) {
+        let jumpPressed = Phaser.Input.Keyboard.JustDown(this.cursors.W);
+        if (this.scene.touchControls && this.scene.touchControls.jump) {
+            jumpPressed = true;
+            this.scene.touchControls.jump = false; // Reset to simulate JustDown
+        }
+
+        if (jumpPressed && (this.body.blocked.down || this.jumpsLeft > 0)) {
             if (!this.body.blocked.down) {
                 this.jumpsLeft--;
             }
@@ -49,7 +57,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
             this.anims.play('player_jump', true);
         }
 
-        if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
+        let shootPressed = Phaser.Input.Keyboard.JustDown(this.spaceKey);
+        if (this.scene.touchControls && this.scene.touchControls.shoot) {
+            shootPressed = true;
+            this.scene.touchControls.shoot = false; // Reset to simulate JustDown
+        }
+
+        if (shootPressed) {
             // Shoot bullet - Spawn from chest height instead of feet
             const spawnY = this.y - (this.displayHeight * 0.5);
             this.scene.shootBullet(this.x, spawnY, this.flipX ? -1 : 1, true);
