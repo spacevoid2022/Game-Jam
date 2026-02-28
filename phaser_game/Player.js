@@ -12,6 +12,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
 
         // Input
         this.cursors = scene.input.keyboard.addKeys('W,A,S,D');
+        this.spaceKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         this.anims.play('player_idle', true);
     }
 
@@ -35,7 +36,13 @@ class Player extends Phaser.Physics.Arcade.Sprite {
                 this.jumpsLeft--;
             }
             this.setVelocityY(-600);
+            this.scene.sound.play('jump');
             this.anims.play('player_jump', true);
+        }
+
+        if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
+            // Shoot bullet
+            this.scene.shootBullet(this.x, this.y, this.flipX ? -1 : 1, true);
         }
 
         if (this.body.blocked.down) {

@@ -59,7 +59,7 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
 
             if (this.shootCooldown === 0) {
                 this.shootCooldown = 240;
-                // TODO: Shoot bullet (Phase 4 later step)
+                this.scene.shootBullet(this.x, this.y, this.direction, false);
             }
         }
 

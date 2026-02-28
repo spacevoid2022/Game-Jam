@@ -62,7 +62,10 @@ class GameScene extends Phaser.Scene {
         this.obstacles = this.physics.add.staticGroup();
         this.decorations = this.add.group();
         this.enemies = this.physics.add.group();
+        this.playerBullets = this.physics.add.group();
+        this.enemyBullets = this.physics.add.group();
 
+        this.createUI();
         this.createAnimations();
         this.generateLevel();
 
@@ -74,10 +77,76 @@ class GameScene extends Phaser.Scene {
         this.physics.add.collider(this.player, this.obstacles);
         this.physics.add.collider(this.enemies, this.obstacles);
 
+        this.physics.add.collider(this.playerBullets, this.obstacles, (bullet) => bullet.destroy());
+        this.physics.add.collider(this.enemyBullets, this.obstacles, (bullet) => bullet.destroy());
+        this.physics.add.overlap(this.playerBullets, this.enemies, this.hitEnemy, null, this);
+        this.physics.add.overlap(this.enemyBullets, this.player, this.hitPlayer, null, this);
+
         // Camera
         this.cameras.main.setBounds(0, 0, 150 * 40, 640); // 150 tiles * 40px
         this.physics.world.setBounds(0, 0, 150 * 40, 640);
         this.cameras.main.startFollow(this.player);
+    }
+
+    createUI() {
+        this.kills = 0;
+        this.maxHealth = 3;
+        this.health = 3;
+
+        this.scoreText = this.add.text(10, 10, 'Kills: 0', { fontSize: '30px', fill: '#FFF' }).setScrollFactor(0);
+        this.scoreText.setStroke('#000000', 4);
+
+        this.hearts = [];
+        for (let i = 0; i < this.maxHealth; i++) {
+            let heart = this.add.image(25 + (i * 35), 60, 'heart').setScrollFactor(0);
+            this.hearts.push(heart);
+        }
+    }
+
+    updateHealthUI() {
+        for (let i = 0; i < this.maxHealth; i++) {
+            this.hearts[i].setVisible(i < this.health);
+        }
+    }
+
+    shootBullet(x, y, direction, isPlayer) {
+        if (isPlayer) this.sound.play('shot');
+        let bullet = new Bullet(this, x, y, direction);
+        if (isPlayer) {
+            this.playerBullets.add(bullet);
+        } else {
+            this.enemyBullets.add(bullet);
+        }
+    }
+
+    hitEnemy(bullet, enemy) {
+        if (!enemy.isAlive) return;
+        bullet.destroy();
+        enemy.health--;
+        if (enemy.health <= 0) {
+            enemy.die();
+            this.kills++;
+            this.scoreText.setText('Kills: ' + this.kills);
+            this.sound.play('shot'); // Enemy death sound fallback
+        }
+    }
+
+    hitPlayer(player, bullet) {
+        bullet.destroy();
+        this.health--;
+        this.updateHealthUI();
+        this.sound.play('shot'); // Hit damage sound
+
+        if (this.health <= 0) {
+            this.currentState = this.GAME_STATES.GAME_OVER;
+            // Immediate respawn logic to prevent blocking
+            setTimeout(() => {
+                this.health = 3;
+                this.updateHealthUI();
+                this.player.setPosition(100, 100);
+                this.currentState = this.GAME_STATES.PLAYING;
+            }, 1000);
+        }
     }
 
     createAnimations() {
@@ -139,11 +208,26 @@ class GameScene extends Phaser.Scene {
 
     update(time, delta) {
         if (this.currentState === this.GAME_STATES.PLAYING) {
+            // Dynamic Spawning
+            this.spawnTimer = (this.spawnTimer || 0) + 1;
+            if (this.spawnTimer >= 360) {
+                this.spawnTimer = 0;
+                let spawnX = this.cameras.main.scrollX + Phaser.Math.Between(850, 1000);
+                let newEnemy = new Enemy(this, spawnX, -50);
+                this.enemies.add(newEnemy);
+            }
+
             if (this.player) {
                 this.player.update();
             }
             if (this.enemies) {
                 this.enemies.getChildren().forEach(enemy => enemy.update());
+            }
+            if (this.playerBullets) {
+                this.playerBullets.getChildren().forEach(bullet => bullet.update());
+            }
+            if (this.enemyBullets) {
+                this.enemyBullets.getChildren().forEach(bullet => bullet.update());
             }
 
             // Parallax scroll updates
