@@ -28,6 +28,21 @@ class GameScene extends Phaser.Scene {
         for (let i = 1; i <= 3; i++) {
             this.load.text(`level${i}`, `Assets/level${i}_data.csv`);
         }
+
+        // Load Player and Enemy animation frames
+        const playerAnimCounts = { Idle: 5, Run: 6, Jump: 1, Death: 8 };
+        for (const [anim, count] of Object.entries(playerAnimCounts)) {
+            for (let i = 0; i < count; i++) {
+                this.load.image(`player_${anim.toLowerCase()}_${i}`, `Assets/img/player/${anim}/${i}.png`);
+            }
+        }
+
+        const enemyAnimCounts = { Idle: 5, Run: 6, Jump: 1, Death: 8 };
+        for (const [anim, count] of Object.entries(enemyAnimCounts)) {
+            for (let i = 0; i < count; i++) {
+                this.load.image(`enemy_${anim.toLowerCase()}_${i}`, `Assets/img/enemy/${anim}/${i}.png`);
+            }
+        }
     }
 
     create() {
@@ -46,7 +61,9 @@ class GameScene extends Phaser.Scene {
 
         this.obstacles = this.physics.add.staticGroup();
         this.decorations = this.add.group();
+        this.enemies = this.physics.add.group();
 
+        this.createAnimations();
         this.generateLevel();
 
         // Add player
@@ -55,11 +72,26 @@ class GameScene extends Phaser.Scene {
 
         // Add collision
         this.physics.add.collider(this.player, this.obstacles);
+        this.physics.add.collider(this.enemies, this.obstacles);
 
         // Camera
         this.cameras.main.setBounds(0, 0, 150 * 40, 640); // 150 tiles * 40px
         this.physics.world.setBounds(0, 0, 150 * 40, 640);
         this.cameras.main.startFollow(this.player);
+    }
+
+    createAnimations() {
+        // Player Anims
+        this.anims.create({ key: 'player_idle', frames: Array.from({ length: 5 }, (_, i) => ({ key: `player_idle_${i}` })), frameRate: 10, repeat: -1 });
+        this.anims.create({ key: 'player_run', frames: Array.from({ length: 6 }, (_, i) => ({ key: `player_run_${i}` })), frameRate: 10, repeat: -1 });
+        this.anims.create({ key: 'player_jump', frames: Array.from({ length: 1 }, (_, i) => ({ key: `player_jump_${i}` })), frameRate: 10, repeat: -1 });
+        this.anims.create({ key: 'player_death', frames: Array.from({ length: 8 }, (_, i) => ({ key: `player_death_${i}` })), frameRate: 10, repeat: 0 });
+
+        // Enemy Anims
+        this.anims.create({ key: 'enemy_idle', frames: Array.from({ length: 5 }, (_, i) => ({ key: `enemy_idle_${i}` })), frameRate: 10, repeat: -1 });
+        this.anims.create({ key: 'enemy_run', frames: Array.from({ length: 6 }, (_, i) => ({ key: `enemy_run_${i}` })), frameRate: 10, repeat: -1 });
+        this.anims.create({ key: 'enemy_jump', frames: Array.from({ length: 1 }, (_, i) => ({ key: `enemy_jump_${i}` })), frameRate: 10, repeat: -1 });
+        this.anims.create({ key: 'enemy_death', frames: Array.from({ length: 8 }, (_, i) => ({ key: `enemy_death_${i}` })), frameRate: 10, repeat: 0 });
     }
 
     createBackgrounds() {
@@ -95,6 +127,10 @@ class GameScene extends Phaser.Scene {
                         img.setDisplaySize(TILE_SIZE, TILE_SIZE);
                     } else if (tileId === 15) {
                         // Will handle player spawn in next updates
+                    } else if (tileId === 16) {
+                        // Enemy spawn
+                        let enemy = new Enemy(this, px, py - 20); // offset y slightly above tile
+                        this.enemies.add(enemy);
                     }
                 }
             });
@@ -105,6 +141,9 @@ class GameScene extends Phaser.Scene {
         if (this.currentState === this.GAME_STATES.PLAYING) {
             if (this.player) {
                 this.player.update();
+            }
+            if (this.enemies) {
+                this.enemies.getChildren().forEach(enemy => enemy.update());
             }
 
             // Parallax scroll updates
