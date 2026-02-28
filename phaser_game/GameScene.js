@@ -49,6 +49,25 @@ class GameScene extends Phaser.Scene {
         // Phase 3: Initialization will go here
         this.currentLevel = 1;
 
+        // Generate fallback textures
+        let bulletGraphics = this.make.graphics({ add: false });
+        bulletGraphics.fillStyle(0xffff00);
+        bulletGraphics.fillRect(0, 0, 10, 5);
+        bulletGraphics.generateTexture('yellow_bullet', 10, 5);
+
+        let heartGraphics = this.make.graphics({ add: false });
+        heartGraphics.fillStyle(0xff0000);
+        heartGraphics.fillRect(0, 0, 30, 30);
+        heartGraphics.generateTexture('red_square', 30, 30);
+
+        // Start background music
+        if (!this.sound.get('bgMusic')) {
+            this.bgMusic = this.sound.add('bgMusic', { loop: true, volume: 0.3 });
+            this.bgMusic.play();
+        } else if (!this.sound.get('bgMusic').isPlaying) {
+            this.sound.play('bgMusic');
+        }
+
         // Game States
         this.GAME_STATES = {
             MENU: 0, PLAYING: 1, GAME_OVER: 2,
@@ -90,15 +109,15 @@ class GameScene extends Phaser.Scene {
 
     createUI() {
         this.kills = 0;
-        this.maxHealth = 3;
-        this.health = 3;
+        this.maxHealth = 10;
+        this.health = 10;
 
         this.scoreText = this.add.text(10, 10, 'Kills: 0', { fontSize: '30px', fill: '#FFF' }).setScrollFactor(0);
         this.scoreText.setStroke('#000000', 4);
 
         this.hearts = [];
         for (let i = 0; i < this.maxHealth; i++) {
-            let heart = this.add.image(25 + (i * 35), 60, 'heart').setScrollFactor(0);
+            let heart = this.add.image(25 + (i * 35), 60, 'red_square').setScrollFactor(0);
             this.hearts.push(heart);
         }
     }
@@ -141,7 +160,7 @@ class GameScene extends Phaser.Scene {
             this.currentState = this.GAME_STATES.GAME_OVER;
             // Immediate respawn logic to prevent blocking
             setTimeout(() => {
-                this.health = 3;
+                this.health = 10;
                 this.updateHealthUI();
                 this.player.setPosition(100, 100);
                 this.currentState = this.GAME_STATES.PLAYING;
