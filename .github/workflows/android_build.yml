@@ -29,6 +29,7 @@ jobs:
         run: |
           cd phaser_game
           npm run build
+          ls -la dist  # Verify build output
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -44,10 +45,12 @@ jobs:
       - name: Build Android APK
         run: |
           cd phaser_game/android
+          ls -la  # Debug: Check if gradlew exists
           # Fix potential Windows line ending issues in gradlew
           sed -i 's/\r$//' gradlew
           chmod +x gradlew
-          ./gradlew assembleDebug
+          # Use bash explicitly to avoid shebang issues
+          bash gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
