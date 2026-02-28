@@ -297,7 +297,7 @@ class GameScene extends Phaser.Scene {
                     // Decorations (no collision). Exclude 15+ (Spawns and Items)
                     let img = this.decorations.create(px, py, `tile${tileId}`);
                     img.setDisplaySize(TILE_SIZE, TILE_SIZE);
-                    img.setDepth(2); // Crates behind everything characters
+                    img.setDepth(2); // Crates behind characters
                 } else if (tileId === 16) {
                     // Enemy spawn - Search DOWN for solid ground
                     let spawnY = (y + 1) * 40;
@@ -308,10 +308,21 @@ class GameScene extends Phaser.Scene {
                             break;
                         }
                     }
+                    this.enemySpawnPoints.push({ x: px, y: spawnY - 2 }); // Spawn 2px above ground
+                    let enemy = new Enemy(this, px, spawnY - 2);
+                    enemy.setDepth(10);
                     this.enemies.add(enemy);
                 } else if (tileId === 15) {
-                    // Player spawn
-                    this.playerSpawn = { x: px, y: py };
+                    // Player spawn - Search DOWN for solid ground
+                    let spawnY = py;
+                    for (let rowIdx = y + 1; rowIdx < rows.length; rowIdx++) {
+                        const belowTileId = rows[rowIdx][x];
+                        if (belowTileId >= 0 && belowTileId <= 8) {
+                            spawnY = rowIdx * 40; // Top of the solid tile
+                            break;
+                        }
+                    }
+                    this.playerSpawn = { x: px, y: spawnY - 2 }; // Spawn 2px above ground
                 }
             });
         });

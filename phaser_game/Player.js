@@ -5,6 +5,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         scene.physics.add.existing(this);
 
         this.setScale(1.5);
+        this.setOrigin(0.5, 1); // Set feet as origin for perfect grounding
         this.setCollideWorldBounds(true);
         this.setGravityY(1200); // Approximate equivalent to Pygame gravity
         this.speed = 300;
@@ -47,11 +48,12 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         }
 
         if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
-            // Shoot bullet
-            this.scene.shootBullet(this.x, this.y, this.flipX ? -1 : 1, true);
+            // Shoot bullet - Spawn from chest height instead of feet
+            const spawnY = this.y - (this.displayHeight * 0.5);
+            this.scene.shootBullet(this.x, spawnY, this.flipX ? -1 : 1, true);
 
             for (let i = 0; i < this.extraBullets; i++) {
-                this.scene.shootBullet(this.x, this.y - (15 * (i + 1)), this.flipX ? -1 : 1, true);
+                this.scene.shootBullet(this.x, spawnY - (15 * (i + 1)), this.flipX ? -1 : 1, true);
             }
         }
 
