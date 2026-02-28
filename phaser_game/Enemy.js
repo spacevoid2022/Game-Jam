@@ -125,10 +125,10 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.setFlipX(this.direction === -1);
 
         // Animation update
-        if (this.body.velocity.x !== 0) {
-            this.anims.play('enemy_run', true);
-        } else {
+        if (this.idling) {
             this.anims.play('enemy_idle', true);
+        } else {
+            this.anims.play('enemy_run', true);
         }
     }
 

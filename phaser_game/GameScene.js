@@ -276,8 +276,8 @@ class GameScene extends Phaser.Scene {
                     let img = this.obstacles.create(px, py, `tile${tileId}`);
                     img.setDisplaySize(TILE_SIZE, TILE_SIZE);
                     img.refreshBody();
-                } else if (tileId >= 11 && tileId <= 19) {
-                    // Decorations including crates & items (no collision)
+                } else if (tileId >= 11 && tileId <= 14) {
+                    // Decorations (no collision). Exclude 15+ (Spawns and Items)
                     let img = this.decorations.create(px, py, `tile${tileId}`);
                     img.setDisplaySize(TILE_SIZE, TILE_SIZE);
                 } else if (tileId === 16) {
