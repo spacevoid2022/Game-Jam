@@ -4,6 +4,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         scene.add.existing(this);
         scene.physics.add.existing(this);
 
+        this.setScale(1.5);
         this.setCollideWorldBounds(true);
         this.setGravityY(1200); // Approximate equivalent to Pygame gravity
         this.speed = 300;
