@@ -166,33 +166,32 @@ export default class GameScene extends Phaser.Scene {
             .setOrigin(0.5)
             .setScrollFactor(0)
             .setDepth(1001);
-
         // Jump Button
-        this.jumpBtn = this.add.circle(1100 - 160, height - 60, 40, 0x333333, 0.5)
+        this.jumpBtn = this.add.circle(1280 - 160, height - 60, 40, 0x333333, 0.5)
             .setInteractive()
             .setScrollFactor(0)
             .setDepth(1000);
-        this.add.text(1100 - 160, height - 60, 'J', { fontSize: '40px', fill: '#fff' })
+        this.add.text(1280 - 160, height - 60, 'J', { fontSize: '40px', fill: '#fff' })
             .setOrigin(0.5)
             .setScrollFactor(0)
             .setDepth(1001);
 
         // Shoot Button
-        this.shootBtn = this.add.circle(1100 - 60, height - 60, 40, 0x333333, 0.5)
+        this.shootBtn = this.add.circle(1280 - 60, height - 60, 40, 0x333333, 0.5)
             .setInteractive()
             .setScrollFactor(0)
             .setDepth(1000);
-        this.add.text(1100 - 60, height - 60, 'S', { fontSize: '40px', fill: '#fff' })
+        this.add.text(1280 - 60, height - 60, 'S', { fontSize: '40px', fill: '#fff' })
             .setOrigin(0.5)
             .setScrollFactor(0)
             .setDepth(1001);
 
         // Shop Toggle Button (Top Right)
-        this.shopBtn = this.add.rectangle(1100 - 60, 40, 80, 40, 0x333333, 0.5)
+        this.shopBtn = this.add.rectangle(1280 - 60, 40, 80, 40, 0x333333, 0.5)
             .setInteractive()
             .setScrollFactor(0)
             .setDepth(1000);
-        this.add.text(1100 - 60, 40, 'SHOP', { fontSize: '20px', fill: '#fff' })
+        this.add.text(1280 - 60, 40, 'SHOP', { fontSize: '20px', fill: '#fff' })
             .setOrigin(0.5)
             .setScrollFactor(0)
             .setDepth(1001);
@@ -281,7 +280,7 @@ export default class GameScene extends Phaser.Scene {
         this.scoreText.setStroke('#000000', 4);
 
         // Mobile Version Label
-        this.add.text(10, 40, 'Mobile v1.3', { fontSize: '12px', fill: '#ffff00' }).setScrollFactor(0).setDepth(1000);
+        this.add.text(10, 40, 'Mobile v1.4', { fontSize: '12px', fill: '#ffff00' }).setScrollFactor(0).setDepth(1000);
 
         this.hearts = [];
         for (let i = 0; i < this.maxHealth; i++) {
@@ -409,7 +408,7 @@ export default class GameScene extends Phaser.Scene {
 
     createBackgrounds() {
         // Using TileSprites for parallax scrolling
-        const width = 1100; // Screen width
+        const width = 1280; // Screen width
         const height = 640;
         this.skyBg = this.add.tileSprite(0, 0, width, height, 'sky').setOrigin(0, 0).setScrollFactor(0);
         this.mountainBg = this.add.tileSprite(0, height - 300, width, 300, 'mountain').setOrigin(0, 0).setScrollFactor(0);
@@ -601,26 +600,32 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createGameOverUI() {
-        this.gameOverUI = this.add.container(550, 320).setScrollFactor(0).setVisible(false);
-        let bg = this.add.rectangle(0, 0, 1100, 640, 0x000000, 0.8);
+        this.gameOverUI = this.add.container(640, 320).setScrollFactor(0).setVisible(false);
+        let bg = this.add.rectangle(0, 0, 1280, 640, 0x000000, 0.8);
         this.gameOverText = this.add.text(0, -100, 'GAME OVER', { fontSize: '64px', fill: '#ff0000' }).setOrigin(0.5);
         this.finalKillsText = this.add.text(0, -30, 'Final Kills: 0', { fontSize: '30px', fill: '#ffffff' }).setOrigin(0.5);
 
         let sub = this.add.text(0, 30, 'Press R to Respawn', { fontSize: '24px', fill: '#aaaaaa' }).setOrigin(0.5);
 
         // Touch Respawn Button
-        let respawnBtn = this.add.rectangle(0, 120, 200, 60, 0xff0000, 1).setInteractive();
+        let respawnBtn = this.add.rectangle(0, 120, 240, 80, 0xff0000, 1).setInteractive();
         let respawnLabel = this.add.text(0, 120, 'RESPAWN', { fontSize: '32px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
 
-        respawnBtn.on('pointerdown', () => this.resetGame());
+        respawnBtn.on('pointerdown', () => {
+            respawnBtn.setTint(0xffaaaa);
+            console.log('Respawn clicked');
+            this.resetGame();
+        });
+
+        respawnBtn.on('pointerup', () => respawnBtn.clearTint());
 
         this.gameOverUI.add([bg, this.gameOverText, this.finalKillsText, sub, respawnBtn, respawnLabel]);
-        this.gameOverUI.setDepth(200);
+        this.gameOverUI.setDepth(2000); // Topmost
     }
 
     createStoreUI() {
-        this.storeUI = this.add.container(550, 320).setScrollFactor(0).setVisible(false);
-        let bg = this.add.rectangle(0, 0, 1100, 640, 0x000000, 0.85); // Full screen overlay
+        this.storeUI = this.add.container(640, 320).setScrollFactor(0).setVisible(false);
+        let bg = this.add.rectangle(0, 0, 1280, 640, 0x000000, 0.85); // Full screen overlay
         let frame = this.add.rectangle(0, 0, 500, 400, 0x333333, 1).setStrokeStyle(4, 0xffff00);
 
         let title = this.add.text(0, -150, 'UPGRADE SHOP (PAUSED)', { fontSize: '32px', fill: '#ffff00', fontStyle: 'bold' }).setOrigin(0.5);

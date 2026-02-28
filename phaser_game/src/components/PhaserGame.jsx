@@ -9,7 +9,7 @@ const PhaserGame = () => {
         if (!gameRef.current) {
             const config = {
                 type: Phaser.AUTO,
-                width: 1100,
+                width: 1280,
                 height: 640,
                 backgroundColor: '#90c978',
                 parent: 'game-container',
