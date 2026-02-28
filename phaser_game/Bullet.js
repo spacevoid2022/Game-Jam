@@ -4,9 +4,12 @@ class Bullet extends Phaser.Physics.Arcade.Sprite {
         scene.add.existing(this);
         scene.physics.add.existing(this);
 
-        this.body.allowGravity = false;
         this.speed = 400;
         this.direction = direction;
+        this.body.allowGravity = false;
+
+        this.setTint(0xffff00);
+        this.setDisplaySize(10, 5);
 
         this.setVelocityX(this.speed * this.direction);
     }

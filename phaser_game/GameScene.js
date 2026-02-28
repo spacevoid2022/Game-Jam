@@ -136,6 +136,8 @@ class GameScene extends Phaser.Scene {
         } else {
             this.enemyBullets.add(bullet);
         }
+        // Force velocity after group addition to avoid reset
+        bullet.setVelocityX(bullet.speed * bullet.direction);
     }
 
     hitEnemy(bullet, enemy) {
@@ -216,8 +218,8 @@ class GameScene extends Phaser.Scene {
                     } else if (tileId === 15) {
                         // Will handle player spawn in next updates
                     } else if (tileId === 16) {
-                        // Enemy spawn
-                        let enemy = new Enemy(this, px, py - 20); // offset y slightly above tile
+                        // Enemy spawn: px is center, bottom of row y is (y+1)*40
+                        let enemy = new Enemy(this, px, (y + 1) * 40);
                         this.enemies.add(enemy);
                     }
                 }
