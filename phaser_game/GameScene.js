@@ -93,11 +93,11 @@ class GameScene extends Phaser.Scene {
 
         this.createUI();
         this.createAnimations();
+        this.playerSpawn = { x: 100, y: 100 };
         this.generateLevel();
 
         // Add player
-        // Spawn coordinates will eventually come from the CSV (tile 15)
-        this.player = new Player(this, 100, 100);
+        this.player = new Player(this, this.playerSpawn.x, this.playerSpawn.y);
         this.player.setDepth(11);
 
         // Apply persisted stats
@@ -308,10 +308,10 @@ class GameScene extends Phaser.Scene {
                             break;
                         }
                     }
-                    this.enemySpawnPoints.push({ x: px, y: spawnY });
-                    let enemy = new Enemy(this, px, spawnY);
-                    enemy.setDepth(10);
                     this.enemies.add(enemy);
+                } else if (tileId === 15) {
+                    // Player spawn
+                    this.playerSpawn = { x: px, y: py };
                 }
             });
         });
