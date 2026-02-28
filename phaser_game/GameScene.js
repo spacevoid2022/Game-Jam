@@ -33,6 +33,17 @@ class GameScene extends Phaser.Scene {
     create() {
         // Phase 3: Initialization will go here
         this.currentLevel = 1;
+
+        // Game States
+        this.GAME_STATES = {
+            MENU: 0, PLAYING: 1, GAME_OVER: 2,
+            PAUSED: 3, STORE: 4, LEVEL_COMPLETE: 5, GAME_BEATEN: 6
+        };
+        this.currentState = this.GAME_STATES.PLAYING; // Skip menu for now for easy testing
+
+        // Backgrounds
+        this.createBackgrounds();
+
         this.obstacles = this.physics.add.staticGroup();
         this.decorations = this.add.group();
 
@@ -44,6 +55,21 @@ class GameScene extends Phaser.Scene {
 
         // Add collision
         this.physics.add.collider(this.player, this.obstacles);
+
+        // Camera
+        this.cameras.main.setBounds(0, 0, 150 * 40, 640); // 150 tiles * 40px
+        this.physics.world.setBounds(0, 0, 150 * 40, 640);
+        this.cameras.main.startFollow(this.player);
+    }
+
+    createBackgrounds() {
+        // Using TileSprites for parallax scrolling
+        const width = 800; // Screen width
+        const height = 640;
+        this.skyBg = this.add.tileSprite(0, 0, width, height, 'sky').setOrigin(0, 0).setScrollFactor(0);
+        this.mountainBg = this.add.tileSprite(0, height - 300, width, 300, 'mountain').setOrigin(0, 0).setScrollFactor(0);
+        this.pine1Bg = this.add.tileSprite(0, height - 150, width, 150, 'pine1').setOrigin(0, 0).setScrollFactor(0);
+        this.pine2Bg = this.add.tileSprite(0, height - 80, width, 80, 'pine2').setOrigin(0, 0).setScrollFactor(0); // Adjust height accordingly
     }
 
     generateLevel() {
@@ -76,8 +102,17 @@ class GameScene extends Phaser.Scene {
     }
 
     update(time, delta) {
-        if (this.player) {
-            this.player.update();
+        if (this.currentState === this.GAME_STATES.PLAYING) {
+            if (this.player) {
+                this.player.update();
+            }
+
+            // Parallax scroll updates
+            const camX = this.cameras.main.scrollX;
+            this.skyBg.tilePositionX = camX * 0.5;
+            this.mountainBg.tilePositionX = camX * 0.6;
+            this.pine1Bg.tilePositionX = camX * 0.7;
+            this.pine2Bg.tilePositionX = camX * 0.8;
         }
     }
 }
