@@ -262,35 +262,37 @@ class GameScene extends Phaser.Scene {
 
     generateLevel() {
         const csvData = this.cache.text.get(`level${this.currentLevel}`);
-        const rows = csvData.split('\n');
+        const rows = csvData.split('\n').map(row => row.split(',').map(tile => parseInt(tile.trim())));
 
         const TILE_SIZE = 40;
 
         rows.forEach((row, y) => {
-            const tiles = row.split(',');
-            tiles.forEach((tile, x) => {
-                const tileId = parseInt(tile.trim());
-                if (tileId >= 0) {
-                    const px = x * TILE_SIZE + (TILE_SIZE / 2);
-                    const py = y * TILE_SIZE + (TILE_SIZE / 2);
+            row.forEach((tileId, x) => {
+                const px = x * TILE_SIZE + (TILE_SIZE / 2);
+                const py = y * TILE_SIZE + (TILE_SIZE / 2);
 
-                    if (tileId >= 0 && tileId <= 8) {
-                        let img = this.obstacles.create(px, py, `tile${tileId}`);
-                        img.setDisplaySize(TILE_SIZE, TILE_SIZE);
-                        img.refreshBody();
-                    } else if (tileId >= 11 && tileId <= 14) {
-                        let img = this.decorations.create(px, py, `tile${tileId}`);
-                        img.setDisplaySize(TILE_SIZE, TILE_SIZE);
-                    } else if (tileId === 15) {
-                        // Will handle player spawn in next updates
-                    } else if (tileId === 16) {
-                        // Enemy spawn: px is center, bottom of row y is (y+1)*40
-                        let ex = px;
-                        let ey = (y + 1) * 40;
-                        this.enemySpawnPoints.push({ x: ex, y: ey });
-                        let enemy = new Enemy(this, ex, ey);
-                        this.enemies.add(enemy);
+                if (tileId >= 0 && tileId <= 8) {
+                    // Solid obstacles
+                    let img = this.obstacles.create(px, py, `tile${tileId}`);
+                    img.setDisplaySize(TILE_SIZE, TILE_SIZE);
+                    img.refreshBody();
+                } else if (tileId >= 11 && tileId <= 19) {
+                    // Decorations including crates & items (no collision)
+                    let img = this.decorations.create(px, py, `tile${tileId}`);
+                    img.setDisplaySize(TILE_SIZE, TILE_SIZE);
+                } else if (tileId === 16) {
+                    // Enemy spawn - Search DOWN for solid ground
+                    let spawnY = (y + 1) * 40;
+                    for (let rowIdx = y + 1; rowIdx < rows.length; rowIdx++) {
+                        const belowTileId = rows[rowIdx][x];
+                        if (belowTileId >= 0 && belowTileId <= 8) {
+                            spawnY = rowIdx * 40; // Top of the solid tile
+                            break;
+                        }
                     }
+                    this.enemySpawnPoints.push({ x: px, y: spawnY });
+                    let enemy = new Enemy(this, px, spawnY);
+                    this.enemies.add(enemy);
                 }
             });
         });
