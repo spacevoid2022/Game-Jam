@@ -405,17 +405,22 @@ class GameScene extends Phaser.Scene {
 
             // Dynamic Spawning
             this.spawnTimer = (this.spawnTimer || 0) + 1;
-            if (!this.nextSpawnTime) this.nextSpawnTime = Phaser.Math.Between(300, 600);
+            if (!this.nextSpawnTime) this.nextSpawnTime = Phaser.Math.Between(60, 180);
 
             if (this.spawnTimer >= this.nextSpawnTime) {
                 this.spawnTimer = 0;
-                this.nextSpawnTime = Phaser.Math.Between(300, 600);
+                this.nextSpawnTime = Phaser.Math.Between(60, 180);
 
-                let spawnX = this.cameras.main.scrollX + Phaser.Math.Between(850, 1000);
+                let spawnX = this.cameras.main.scrollX + Phaser.Math.Between(850, 1100);
                 // Ensure they spawn high enough to fall onto a platform
                 let spawnY = Phaser.Math.Between(-200, 0);
-                let newEnemy = new Enemy(this, spawnX, spawnY);
-                this.enemies.add(newEnemy);
+
+                let count = Phaser.Math.Between(1, 3); // Spawn up to 3 at once
+                for (let i = 0; i < count; i++) {
+                    let offset = i * 40;
+                    let newEnemy = new Enemy(this, spawnX + offset, spawnY);
+                    this.enemies.add(newEnemy);
+                }
             }
 
             if (this.player) {
@@ -458,7 +463,7 @@ class GameScene extends Phaser.Scene {
         let bg = this.add.rectangle(0, 0, 800, 600, 0x000000, 0.85); // Full screen overlay
         let frame = this.add.rectangle(0, 0, 500, 400, 0x333333, 1).setStrokeStyle(4, 0xffff00);
 
-        let title = this.add.text(0, -150, 'UPGRADE SHOP (PAUSED)', { fontSize: '40px', fill: '#ffff00', fontStyle: 'bold' }).setOrigin(0.5);
+        let title = this.add.text(0, -150, 'UPGRADE SHOP (PAUSED)', { fontSize: '32px', fill: '#ffff00', fontStyle: 'bold' }).setOrigin(0.5);
 
         this.storeItems = {
             extraJumps: this.add.text(0, -80, '1. Extra Jump (5 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5),
