@@ -7,7 +7,6 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.setScale(1.5);
         this.setOrigin(0.5, 1); // Stand on floor at Y coordinate
 
-        this.setCollideWorldBounds(true);
         this.setGravityY(1200);
 
         this.health = 1;

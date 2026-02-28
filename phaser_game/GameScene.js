@@ -118,6 +118,7 @@ class GameScene extends Phaser.Scene {
         this.kills = 0;
         this.maxHealth = 10;
         this.health = 10;
+        this.enemySpawnPoints = []; // Track static enemy spawns
 
         this.scoreText = this.add.text(10, 10, 'Kills: 0', { fontSize: '30px', fill: '#FFF' }).setScrollFactor(0);
         this.scoreText.setStroke('#000000', 4);
@@ -194,6 +195,7 @@ class GameScene extends Phaser.Scene {
         this.health = 0;
         this.updateHealthUI();
         this.currentState = this.GAME_STATES.GAME_OVER;
+        this.finalKillsText.setText('Final Kills: ' + this.kills);
         this.gameOverUI.setVisible(true);
     }
 
@@ -201,17 +203,33 @@ class GameScene extends Phaser.Scene {
         this.kills = 0;
         this.scoreText.setText('Kills: 0');
         this.health = 10;
+
+        // Reset player properties
         if (this.player) {
             this.player.shields = 0;
             this.player.maxShields = 0;
             this.player.extraJumps = 0;
             this.player.regenLevel = 0;
             this.player.extraBullets = 0;
+            this.player.regenTimer = 0;
             this.player.setPosition(100, 100);
+            this.player.setVelocity(0, 0);
         }
+
+        // Clear and Re-spawn enemies
+        this.enemies.clear(true, true);
+        this.reSpawnStaticEnemies();
+
         this.updateHealthUI();
         this.gameOverUI.setVisible(false);
         this.currentState = this.GAME_STATES.PLAYING;
+    }
+
+    reSpawnStaticEnemies() {
+        this.enemySpawnPoints.forEach(pt => {
+            let enemy = new Enemy(this, pt.x, pt.y);
+            this.enemies.add(enemy);
+        });
     }
 
     createAnimations() {
@@ -263,7 +281,10 @@ class GameScene extends Phaser.Scene {
                         // Will handle player spawn in next updates
                     } else if (tileId === 16) {
                         // Enemy spawn: px is center, bottom of row y is (y+1)*40
-                        let enemy = new Enemy(this, px, (y + 1) * 40);
+                        let ex = px;
+                        let ey = (y + 1) * 40;
+                        this.enemySpawnPoints.push({ x: ex, y: ey });
+                        let enemy = new Enemy(this, ex, ey);
                         this.enemies.add(enemy);
                     }
                 }
@@ -341,10 +362,16 @@ class GameScene extends Phaser.Scene {
 
             // Dynamic Spawning
             this.spawnTimer = (this.spawnTimer || 0) + 1;
-            if (this.spawnTimer >= 360) {
+            if (!this.nextSpawnTime) this.nextSpawnTime = Phaser.Math.Between(300, 600);
+
+            if (this.spawnTimer >= this.nextSpawnTime) {
                 this.spawnTimer = 0;
+                this.nextSpawnTime = Phaser.Math.Between(300, 600);
+
                 let spawnX = this.cameras.main.scrollX + Phaser.Math.Between(850, 1000);
-                let newEnemy = new Enemy(this, spawnX, 0); // Spawn at top of visible area
+                // Ensure they spawn high enough to fall onto a platform
+                let spawnY = Phaser.Math.Between(-200, 0);
+                let newEnemy = new Enemy(this, spawnX, spawnY);
                 this.enemies.add(newEnemy);
             }
 
@@ -376,9 +403,10 @@ class GameScene extends Phaser.Scene {
     createGameOverUI() {
         this.gameOverUI = this.add.container(400, 320).setScrollFactor(0).setVisible(false);
         let bg = this.add.rectangle(0, 0, 800, 640, 0x000000, 0.8);
-        let title = this.add.text(0, -50, 'GAME OVER', { fontSize: '64px', fill: '#ff0000' }).setOrigin(0.5);
-        let sub = this.add.text(0, 50, 'Press R to Respawn', { fontSize: '32px', fill: '#ffffff' }).setOrigin(0.5);
-        this.gameOverUI.add([bg, title, sub]);
+        this.gameOverText = this.add.text(0, -60, 'GAME OVER', { fontSize: '64px', fill: '#ff0000' }).setOrigin(0.5);
+        this.finalKillsText = this.add.text(0, 5, 'Final Kills: 0', { fontSize: '30px', fill: '#ffffff' }).setOrigin(0.5);
+        let sub = this.add.text(0, 65, 'Press R to Respawn', { fontSize: '32px', fill: '#ffffff' }).setOrigin(0.5);
+        this.gameOverUI.add([bg, this.gameOverText, this.finalKillsText, sub]);
         this.gameOverUI.setDepth(200);
     }
 
