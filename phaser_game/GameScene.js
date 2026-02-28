@@ -3,6 +3,10 @@ class GameScene extends Phaser.Scene {
         super('GameScene');
     }
 
+    init(data) {
+        this.currentLevel = data.level || 1;
+    }
+
     preload() {
         // Load images
         this.load.image('sky', 'Assets/img/background/sky_cloud.png');
@@ -47,7 +51,7 @@ class GameScene extends Phaser.Scene {
 
     create() {
         // Phase 3: Initialization will go here
-        this.currentLevel = 1;
+        // this.currentLevel is set in init(data)
 
         // Generate fallback textures
         let bulletGraphics = this.make.graphics({ add: false });
@@ -222,7 +226,7 @@ class GameScene extends Phaser.Scene {
 
         this.updateHealthUI();
         this.gameOverUI.setVisible(false);
-        this.currentState = this.GAME_STATES.PLAYING;
+        this.scene.restart({ level: 1 });
     }
 
     reSpawnStaticEnemies() {
@@ -340,8 +344,7 @@ class GameScene extends Phaser.Scene {
         if (this.currentState === this.GAME_STATES.LEVEL_COMPLETE) {
             if (Phaser.Input.Keyboard.JustDown(this.nKey)) {
                 if (this.currentLevel < 3) {
-                    this.currentLevel++;
-                    this.scene.restart();
+                    this.scene.restart({ level: this.currentLevel + 1 });
                 } else {
                     this.currentState = this.GAME_STATES.GAME_BEATEN;
                 }
