@@ -281,7 +281,7 @@ export default class GameScene extends Phaser.Scene {
         this.scoreText.setStroke('#000000', 4);
 
         // Mobile Version Label
-        this.add.text(10, 40, 'Mobile v1.1', { fontSize: '12px', fill: '#ffff00' }).setScrollFactor(0).setDepth(1000);
+        this.add.text(10, 40, 'Mobile v1.2', { fontSize: '12px', fill: '#ffff00' }).setScrollFactor(0).setDepth(1000);
 
         this.hearts = [];
         for (let i = 0; i < this.maxHealth; i++) {
