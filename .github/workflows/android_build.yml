@@ -23,12 +23,14 @@ jobs:
       - name: Install Dependencies
         run: |
           cd phaser_game
-          npm install
+          npm ci
 
       - name: Build Web Project
         run: |
           cd phaser_game
-          npm run build
+          # Ensure vite binary is executable if npm ci didn't set it (edge case)
+          chmod +x node_modules/.bin/vite || true
+          npx vite build
           ls -la dist  # Verify build output
 
       - name: Setup Java
