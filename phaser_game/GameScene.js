@@ -5,6 +5,9 @@ class GameScene extends Phaser.Scene {
 
     init(data) {
         this.currentLevel = data.level || 1;
+        this.persistedKills = data.kills || 0;
+        this.persistedHealth = data.health || 10;
+        this.persistedStats = data.playerStats || null;
     }
 
     preload() {
@@ -97,6 +100,15 @@ class GameScene extends Phaser.Scene {
         this.player = new Player(this, 100, 100);
         this.player.setDepth(11);
 
+        // Apply persisted stats
+        if (this.persistedStats) {
+            this.player.extraJumps = this.persistedStats.extraJumps || 0;
+            this.player.regenLevel = this.persistedStats.regenLevel || 0;
+            this.player.extraBullets = this.persistedStats.extraBullets || 0;
+            this.player.maxShields = this.persistedStats.maxShields || 0;
+            this.player.shields = this.persistedStats.shields || 0;
+        }
+
         // Add collision
         this.physics.add.collider(this.player, this.obstacles);
         this.physics.add.collider(this.enemies, this.obstacles);
@@ -117,15 +129,17 @@ class GameScene extends Phaser.Scene {
         this.rKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
         this.nKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.N);
         this.keys = this.input.keyboard.addKeys('ONE,TWO,THREE,FOUR');
+
+        this.updateHealthUI();
     }
 
     createUI() {
-        this.kills = 0;
+        this.kills = this.persistedKills;
         this.maxHealth = 10;
-        this.health = 10;
+        this.health = this.persistedHealth;
         this.enemySpawnPoints = []; // Track static enemy spawns
 
-        this.scoreText = this.add.text(10, 10, 'Kills: 0', { fontSize: '30px', fill: '#FFF' }).setScrollFactor(0);
+        this.scoreText = this.add.text(10, 10, 'Kills: ' + this.kills, { fontSize: '30px', fill: '#FFF' }).setScrollFactor(0);
         this.scoreText.setStroke('#000000', 4);
 
         this.hearts = [];
@@ -228,7 +242,7 @@ class GameScene extends Phaser.Scene {
 
         this.updateHealthUI();
         this.gameOverUI.setVisible(false);
-        this.scene.restart({ level: 1 });
+        this.scene.restart({ level: 1, kills: 0, health: 10, playerStats: null });
     }
 
     reSpawnStaticEnemies() {
@@ -351,7 +365,18 @@ class GameScene extends Phaser.Scene {
         if (this.currentState === this.GAME_STATES.LEVEL_COMPLETE) {
             if (Phaser.Input.Keyboard.JustDown(this.nKey)) {
                 if (this.currentLevel < 3) {
-                    this.scene.restart({ level: this.currentLevel + 1 });
+                    this.scene.restart({
+                        level: this.currentLevel + 1,
+                        kills: this.kills,
+                        health: this.health,
+                        playerStats: {
+                            extraJumps: this.player.extraJumps,
+                            regenLevel: this.player.regenLevel,
+                            extraBullets: this.player.extraBullets,
+                            maxShields: this.player.maxShields,
+                            shields: this.player.shields
+                        }
+                    });
                 } else {
                     this.currentState = this.GAME_STATES.GAME_BEATEN;
                 }
