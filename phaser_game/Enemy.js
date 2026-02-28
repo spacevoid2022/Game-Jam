@@ -9,7 +9,8 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
 
         this.setGravityY(1200);
 
-        this.health = 1;
+        this.health = scene.currentLevel || 1;
+        this.setDepth(10); // Standard enemy depth
         this.speed = 80;
         this.direction = 1;
 

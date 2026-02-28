@@ -95,6 +95,7 @@ class GameScene extends Phaser.Scene {
         // Add player
         // Spawn coordinates will eventually come from the CSV (tile 15)
         this.player = new Player(this, 100, 100);
+        this.player.setDepth(11);
 
         // Add collision
         this.physics.add.collider(this.player, this.obstacles);
@@ -137,6 +138,7 @@ class GameScene extends Phaser.Scene {
         for (let i = 0; i < 10; i++) {
             let shield = this.add.rectangle(25 + (i * 35), 100, 25, 25, 0x0064ff).setScrollFactor(0);
             shield.setVisible(false);
+            shield.setDepth(100);
             this.shieldsUI.push(shield);
         }
 
@@ -276,10 +278,12 @@ class GameScene extends Phaser.Scene {
                     let img = this.obstacles.create(px, py, `tile${tileId}`);
                     img.setDisplaySize(TILE_SIZE, TILE_SIZE);
                     img.refreshBody();
+                    img.setDepth(5);
                 } else if (tileId >= 11 && tileId <= 14) {
                     // Decorations (no collision). Exclude 15+ (Spawns and Items)
                     let img = this.decorations.create(px, py, `tile${tileId}`);
                     img.setDisplaySize(TILE_SIZE, TILE_SIZE);
+                    img.setDepth(2); // Crates behind everything characters
                 } else if (tileId === 16) {
                     // Enemy spawn - Search DOWN for solid ground
                     let spawnY = (y + 1) * 40;
@@ -292,6 +296,7 @@ class GameScene extends Phaser.Scene {
                     }
                     this.enemySpawnPoints.push({ x: px, y: spawnY });
                     let enemy = new Enemy(this, px, spawnY);
+                    enemy.setDepth(10);
                     this.enemies.add(enemy);
                 }
             });
