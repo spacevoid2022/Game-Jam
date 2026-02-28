@@ -205,21 +205,57 @@ export default class GameScene extends Phaser.Scene {
             shoot: false
         };
 
-        this.leftBtn.on('pointerdown', () => this.touchControls.left = true);
-        this.leftBtn.on('pointerup', () => this.touchControls.left = false);
-        this.leftBtn.on('pointerout', () => this.touchControls.left = false);
+        this.leftBtn.on('pointerdown', () => {
+            this.touchControls.left = true;
+            this.leftBtn.setTint(0xffff00);
+        });
+        this.leftBtn.on('pointerup', () => {
+            this.touchControls.left = false;
+            this.leftBtn.clearTint();
+        });
+        this.leftBtn.on('pointerout', () => {
+            this.touchControls.left = false;
+            this.leftBtn.clearTint();
+        });
 
-        this.rightBtn.on('pointerdown', () => this.touchControls.right = true);
-        this.rightBtn.on('pointerup', () => this.touchControls.right = false);
-        this.rightBtn.on('pointerout', () => this.touchControls.right = false);
+        this.rightBtn.on('pointerdown', () => {
+            this.touchControls.right = true;
+            this.rightBtn.setTint(0xffff00);
+        });
+        this.rightBtn.on('pointerup', () => {
+            this.touchControls.right = false;
+            this.rightBtn.clearTint();
+        });
+        this.rightBtn.on('pointerout', () => {
+            this.touchControls.right = false;
+            this.rightBtn.clearTint();
+        });
 
-        this.jumpBtn.on('pointerdown', () => this.touchControls.jump = true);
-        this.jumpBtn.on('pointerup', () => this.touchControls.jump = false);
-        this.jumpBtn.on('pointerout', () => this.touchControls.jump = false);
+        this.jumpBtn.on('pointerdown', () => {
+            this.touchControls.jump = true;
+            this.jumpBtn.setTint(0xffff00);
+        });
+        this.jumpBtn.on('pointerup', () => {
+            this.touchControls.jump = false;
+            this.jumpBtn.clearTint();
+        });
+        this.jumpBtn.on('pointerout', () => {
+            this.touchControls.jump = false;
+            this.jumpBtn.clearTint();
+        });
 
-        this.shootBtn.on('pointerdown', () => this.touchControls.shoot = true);
-        this.shootBtn.on('pointerup', () => this.touchControls.shoot = false);
-        this.shootBtn.on('pointerout', () => this.touchControls.shoot = false);
+        this.shootBtn.on('pointerdown', () => {
+            this.touchControls.shoot = true;
+            this.shootBtn.setTint(0xffff00);
+        });
+        this.shootBtn.on('pointerup', () => {
+            this.touchControls.shoot = false;
+            this.shootBtn.clearTint();
+        });
+        this.shootBtn.on('pointerout', () => {
+            this.touchControls.shoot = false;
+            this.shootBtn.clearTint();
+        });
 
         this.shopBtn.on('pointerdown', () => {
             if (this.currentState === this.GAME_STATES.PLAYING) {
@@ -243,6 +279,9 @@ export default class GameScene extends Phaser.Scene {
 
         this.scoreText = this.add.text(10, 10, 'Kills: ' + this.kills, { fontSize: '30px', fill: '#FFF' }).setScrollFactor(0);
         this.scoreText.setStroke('#000000', 4);
+
+        // Mobile Version Label
+        this.add.text(10, 40, 'Mobile v1.1', { fontSize: '12px', fill: '#ffff00' }).setScrollFactor(0).setDepth(1000);
 
         this.hearts = [];
         for (let i = 0; i < this.maxHealth; i++) {

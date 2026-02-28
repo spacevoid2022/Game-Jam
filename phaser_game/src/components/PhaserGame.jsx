@@ -38,7 +38,7 @@ const PhaserGame = () => {
         };
     }, []);
 
-    return <div id="game-container" style={{ width: '800px', height: '640px' }} />;
+    return <div id="game-container" style={{ width: '100dvw', height: '100dvh', backgroundColor: '#000' }} />;
 };
 
 export default PhaserGame;
