@@ -90,19 +90,17 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
         // Ledge detection (only when on ground)
         if (this.body.blocked.down && this.body.velocity.x !== 0) {
-            // Check slightly ahead and below feet
-            const checkDistance = 15;
+            // Check slightly further ahead to ensure we don't float
+            const checkDistance = 20;
             const ledgeCheckX = this.direction === 1 ? this.x + checkDistance : this.x - checkDistance;
-            const ledgeCheckY = this.y + 10;
+            const ledgeCheckY = this.y + 5; // Direct check below feet
 
             let hasGround = false;
-            // Iterate using a simple distance check or bounds check
             const obstacles = scene.obstacles.getChildren();
             for (let i = 0; i < obstacles.length; i++) {
                 const tile = obstacles[i];
-                const bounds = tile.getBounds();
-                if (ledgeCheckX >= bounds.left && ledgeCheckX <= bounds.right &&
-                    ledgeCheckY >= bounds.top && ledgeCheckY <= bounds.bottom) {
+                // Use built-in Phaser collision check or simple bounds overlap
+                if (tile.getBounds().contains(ledgeCheckX, ledgeCheckY)) {
                     hasGround = true;
                     break;
                 }
@@ -112,6 +110,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
                 this.direction *= -1;
                 this.moveCounter = 0;
                 this.setVelocityX(0);
+                // Snap slightly back to safety
+                this.x -= (this.direction * 5);
             }
         }
 

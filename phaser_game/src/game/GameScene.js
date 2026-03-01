@@ -280,7 +280,7 @@ export default class GameScene extends Phaser.Scene {
         this.scoreText.setStroke('#000000', 4);
 
         // Mobile Version Label
-        this.add.text(10, 40, 'Mobile v1.6', { fontSize: '12px', fill: '#ffff00' }).setScrollFactor(0).setDepth(1000);
+        this.add.text(10, 40, 'Mobile v1.7', { fontSize: '12px', fill: '#ffff00' }).setScrollFactor(0).setDepth(1000);
 
         this.hearts = [];
         for (let i = 0; i < this.maxHealth; i++) {
@@ -674,24 +674,39 @@ export default class GameScene extends Phaser.Scene {
         let title = this.add.text(0, -150, 'UPGRADE SHOP (PAUSED)', { fontSize: '32px', fill: '#ffff00', fontStyle: 'bold' }).setOrigin(0.5);
 
         this.storeItems = {
-            extraJumps: this.add.text(0, -80, '1. Extra Jump (5 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5).setInteractive(),
-            regenLevel: this.add.text(0, -30, '2. Health Regen (10 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5).setInteractive(),
-            extraBullets: this.add.text(0, 20, '3. Extra Bullets (15 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5).setInteractive(),
-            maxShields: this.add.text(0, 70, '4. Max Shields (20 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5).setInteractive()
+            extraJumps: this.add.text(0, -80, '1. Extra Jump (5 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5),
+            regenLevel: this.add.text(0, -30, '2. Health Regen (10 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5),
+            extraBullets: this.add.text(0, 20, '3. Extra Bullets (15 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5),
+            maxShields: this.add.text(0, 70, '4. Max Shields (20 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5)
         };
 
-        // Pointer listeners for touch support
-        this.storeItems.extraJumps.on('pointerdown', () => {
-            if (this.kills >= 5) { this.kills -= 5; this.player.extraJumps++; this.scoreText.setText('Kills: ' + this.kills); this.updateStoreTexts(); }
-        });
-        this.storeItems.regenLevel.on('pointerdown', () => {
-            if (this.kills >= 10) { this.kills -= 10; this.player.regenLevel++; this.scoreText.setText('Kills: ' + this.kills); this.updateStoreTexts(); }
-        });
-        this.storeItems.extraBullets.on('pointerdown', () => {
-            if (this.kills >= 15) { this.kills -= 15; this.player.extraBullets++; this.scoreText.setText('Kills: ' + this.kills); this.updateStoreTexts(); }
-        });
-        this.storeItems.maxShields.on('pointerdown', () => {
-            if (this.kills >= 20) { this.kills -= 20; this.player.maxShields++; this.player.shields++; this.updateHealthUI(); this.scoreText.setText('Kills: ' + this.kills); this.updateStoreTexts(); }
+        // Create large background rectangles for each item to make them easier to tap
+        const itemYPositions = [-80, -30, 20, 70];
+        const itemKeys = ['extraJumps', 'regenLevel', 'extraBullets', 'maxShields'];
+        const costs = [5, 10, 15, 20];
+
+        itemKeys.forEach((key, index) => {
+            let itemBg = this.add.rectangle(0, itemYPositions[index], 450, 40, 0x444444, 0).setInteractive();
+            this.storeUI.add(itemBg);
+
+            const buyAction = () => {
+                const cost = costs[index];
+                if (this.kills >= cost) {
+                    this.kills -= cost;
+                    if (key === 'extraJumps') this.player.extraJumps++;
+                    if (key === 'regenLevel') this.player.regenLevel++;
+                    if (key === 'extraBullets') this.player.extraBullets++;
+                    if (key === 'maxShields') { this.player.maxShields++; this.player.shields++; this.updateHealthUI(); }
+
+                    this.scoreText.setText('Kills: ' + this.kills);
+                    this.updateStoreTexts();
+                    itemBg.setFillStyle(0xffff00, 0.2);
+                    this.time.delayedCall(100, () => itemBg.setFillStyle(0x444444, 0));
+                }
+            };
+
+            itemBg.on('pointerdown', buyAction);
+            this.storeItems[key].setInteractive().on('pointerdown', buyAction);
         });
 
         let hint = this.add.text(0, 140, 'Tap item to Purchase', { fontSize: '20px', fill: '#ffff00' }).setOrigin(0.5);
