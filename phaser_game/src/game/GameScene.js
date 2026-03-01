@@ -280,7 +280,7 @@ export default class GameScene extends Phaser.Scene {
         this.scoreText.setStroke('#000000', 4);
 
         // Mobile Version Label
-        this.add.text(10, 40, 'Mobile v1.4', { fontSize: '12px', fill: '#ffff00' }).setScrollFactor(0).setDepth(1000);
+        this.add.text(10, 40, 'Mobile v1.5', { fontSize: '12px', fill: '#ffff00' }).setScrollFactor(0).setDepth(1000);
 
         this.hearts = [];
         for (let i = 0; i < this.maxHealth; i++) {
@@ -601,7 +601,7 @@ export default class GameScene extends Phaser.Scene {
 
     createGameOverUI() {
         this.gameOverUI = this.add.container(640, 320).setScrollFactor(0).setVisible(false);
-        let bg = this.add.rectangle(0, 0, 1280, 640, 0x000000, 0.8);
+        let bg = this.add.rectangle(0, 0, 1280, 640, 0x000000, 0.8).setInteractive(); // Full screen block
         this.gameOverText = this.add.text(0, -100, 'GAME OVER', { fontSize: '64px', fill: '#ff0000' }).setOrigin(0.5);
         this.finalKillsText = this.add.text(0, -30, 'Final Kills: 0', { fontSize: '30px', fill: '#ffffff' }).setOrigin(0.5);
 
@@ -620,28 +620,42 @@ export default class GameScene extends Phaser.Scene {
         respawnBtn.on('pointerup', () => respawnBtn.clearTint());
 
         this.gameOverUI.add([bg, this.gameOverText, this.finalKillsText, sub, respawnBtn, respawnLabel]);
-        this.gameOverUI.setDepth(2000); // Topmost
+        this.gameOverUI.setDepth(2000);
     }
 
     createStoreUI() {
         this.storeUI = this.add.container(640, 320).setScrollFactor(0).setVisible(false);
-        let bg = this.add.rectangle(0, 0, 1280, 640, 0x000000, 0.85); // Full screen overlay
+        let bg = this.add.rectangle(0, 0, 1280, 640, 0x000000, 0.85).setInteractive(); // Full screen overlay block
         let frame = this.add.rectangle(0, 0, 500, 400, 0x333333, 1).setStrokeStyle(4, 0xffff00);
 
         let title = this.add.text(0, -150, 'UPGRADE SHOP (PAUSED)', { fontSize: '32px', fill: '#ffff00', fontStyle: 'bold' }).setOrigin(0.5);
 
         this.storeItems = {
-            extraJumps: this.add.text(0, -80, '1. Extra Jump (5 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5),
-            regenLevel: this.add.text(0, -30, '2. Health Regen (10 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5),
-            extraBullets: this.add.text(0, 20, '3. Extra Bullets (15 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5),
-            maxShields: this.add.text(0, 70, '4. Max Shields (20 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5)
+            extraJumps: this.add.text(0, -80, '1. Extra Jump (5 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5).setInteractive(),
+            regenLevel: this.add.text(0, -30, '2. Health Regen (10 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5).setInteractive(),
+            extraBullets: this.add.text(0, 20, '3. Extra Bullets (15 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5).setInteractive(),
+            maxShields: this.add.text(0, 70, '4. Max Shields (20 Kills) - Lv: 0', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5).setInteractive()
         };
 
-        let hint = this.add.text(0, 140, 'Press [1-4] to Purchase', { fontSize: '20px', fill: '#ffff00' }).setOrigin(0.5);
-        let footer = this.add.text(0, 175, 'Press TAB to Resume Game', { fontSize: '18px', fill: '#aaa' }).setOrigin(0.5);
+        // Pointer listeners for touch support
+        this.storeItems.extraJumps.on('pointerdown', () => {
+            if (this.kills >= 5) { this.kills -= 5; this.player.extraJumps++; this.scoreText.setText('Kills: ' + this.kills); this.updateStoreTexts(); }
+        });
+        this.storeItems.regenLevel.on('pointerdown', () => {
+            if (this.kills >= 10) { this.kills -= 10; this.player.regenLevel++; this.scoreText.setText('Kills: ' + this.kills); this.updateStoreTexts(); }
+        });
+        this.storeItems.extraBullets.on('pointerdown', () => {
+            if (this.kills >= 15) { this.kills -= 15; this.player.extraBullets++; this.scoreText.setText('Kills: ' + this.kills); this.updateStoreTexts(); }
+        });
+        this.storeItems.maxShields.on('pointerdown', () => {
+            if (this.kills >= 20) { this.kills -= 20; this.player.maxShields++; this.player.shields++; this.updateHealthUI(); this.scoreText.setText('Kills: ' + this.kills); this.updateStoreTexts(); }
+        });
+
+        let hint = this.add.text(0, 140, 'Tap item to Purchase', { fontSize: '20px', fill: '#ffff00' }).setOrigin(0.5);
+        let footer = this.add.text(0, 175, 'Tap SHOP (Top Right) to Resume', { fontSize: '18px', fill: '#aaa' }).setOrigin(0.5);
 
         this.storeUI.add([bg, frame, title, this.storeItems.extraJumps, this.storeItems.regenLevel, this.storeItems.extraBullets, this.storeItems.maxShields, hint, footer]);
-        this.storeUI.setDepth(100);
+        this.storeUI.setDepth(2000);
     }
 
     updateStoreTexts() {
