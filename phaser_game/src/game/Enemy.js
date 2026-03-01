@@ -74,11 +74,12 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
             this.setVelocityX(this.speed * this.direction);
             this.moveCounter++;
 
-            if (this.moveCounter > 40) { // TILE_SIZE
+            // Increased moveCounter limit for longer patrols
+            if (this.moveCounter > Phaser.Math.Between(120, 250)) {
                 this.direction *= -1;
-                this.moveCounter *= -1;
+                this.moveCounter = 0;
                 this.idling = true;
-                this.idlingCounter = Phaser.Math.Between(30, 90);
+                this.idlingCounter = Phaser.Math.Between(40, 100);
             }
         } else {
             this.setVelocityX(0);
@@ -90,17 +91,19 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
         // Ledge detection (only when on ground)
         if (this.body.blocked.down && this.body.velocity.x !== 0) {
-            // Check slightly further ahead to ensure we don't float
-            const checkDistance = 20;
-            const ledgeCheckX = this.direction === 1 ? this.x + checkDistance : this.x - checkDistance;
-            const ledgeCheckY = this.y + 5; // Direct check below feet
+            // Predict the ledge further ahead using a check rectangle
+            const checkWidth = 30;
+            const checkHeight = 40;
+            const checkX = this.direction === 1 ? this.x + 20 : this.x - 20 - checkWidth;
+            const checkY = this.y + 2; // Check just below the feet level
 
             let hasGround = false;
             const obstacles = scene.obstacles.getChildren();
+            const checkRect = new Phaser.Geom.Rectangle(checkX, checkY, checkWidth, checkHeight);
+
             for (let i = 0; i < obstacles.length; i++) {
                 const tile = obstacles[i];
-                // Use built-in Phaser collision check or simple bounds overlap
-                if (tile.getBounds().contains(ledgeCheckX, ledgeCheckY)) {
+                if (Phaser.Geom.Intersects.RectangleToRectangle(checkRect, tile.getBounds())) {
                     hasGround = true;
                     break;
                 }
@@ -110,8 +113,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
                 this.direction *= -1;
                 this.moveCounter = 0;
                 this.setVelocityX(0);
-                // Snap slightly back to safety
-                this.x -= (this.direction * 5);
+                // Snap back to safety to prevent any "hanging" frames
+                this.x += (this.direction * 10);
             }
         }
 
