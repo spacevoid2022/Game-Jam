@@ -280,7 +280,7 @@ export default class GameScene extends Phaser.Scene {
         this.scoreText.setStroke('#000000', 4);
 
         // Mobile Version Label
-        this.add.text(10, 40, 'Mobile v1.5', { fontSize: '12px', fill: '#ffff00' }).setScrollFactor(0).setDepth(1000);
+        this.add.text(10, 40, 'Mobile v1.6', { fontSize: '12px', fill: '#ffff00' }).setScrollFactor(0).setDepth(1000);
 
         this.hearts = [];
         for (let i = 0; i < this.maxHealth; i++) {
@@ -357,6 +357,7 @@ export default class GameScene extends Phaser.Scene {
         this.currentState = this.GAME_STATES.GAME_OVER;
         this.finalKillsText.setText('Final Kills: ' + this.kills);
         this.gameOverUI.setVisible(true);
+        this.physics.world.pause(); // Stop movements to ensure focus on UI
     }
 
     resetGame() {
@@ -546,7 +547,7 @@ export default class GameScene extends Phaser.Scene {
             // Level completion check (150 tiles * 40px = 6000px)
             if (this.player.x > (150 * 40) - 150) {
                 this.currentState = this.GAME_STATES.LEVEL_COMPLETE;
-                this.add.text(400, 320, 'LEVEL COMPLETE!\nPress N for Next Level', { fontSize: '48px', fill: '#ffff00', align: 'center' }).setOrigin(0.5).setScrollFactor(0);
+                this.createLevelCompleteUI();
             }
 
             // Death by falling
@@ -601,26 +602,68 @@ export default class GameScene extends Phaser.Scene {
 
     createGameOverUI() {
         this.gameOverUI = this.add.container(640, 320).setScrollFactor(0).setVisible(false);
-        let bg = this.add.rectangle(0, 0, 1280, 640, 0x000000, 0.8).setInteractive(); // Full screen block
-        this.gameOverText = this.add.text(0, -100, 'GAME OVER', { fontSize: '64px', fill: '#ff0000' }).setOrigin(0.5);
+        // Semi-transparent background that blocks inputs below it
+        let bg = this.add.rectangle(0, 0, 1280, 640, 0x000000, 0.8).setInteractive();
+
+        this.gameOverText = this.add.text(0, -100, 'GAME OVER', { fontSize: '64px', fill: '#ff0000', fontStyle: 'bold' }).setOrigin(0.5);
         this.finalKillsText = this.add.text(0, -30, 'Final Kills: 0', { fontSize: '30px', fill: '#ffffff' }).setOrigin(0.5);
 
         let sub = this.add.text(0, 30, 'Press R to Respawn', { fontSize: '24px', fill: '#aaaaaa' }).setOrigin(0.5);
 
-        // Touch Respawn Button
-        let respawnBtn = this.add.rectangle(0, 120, 240, 80, 0xff0000, 1).setInteractive();
-        let respawnLabel = this.add.text(0, 120, 'RESPAWN', { fontSize: '32px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
+        // Touch Respawn Button - Large and obvious
+        let respawnBtn = this.add.rectangle(0, 120, 300, 100, 0xff0000, 1).setInteractive();
+        let respawnLabel = this.add.text(0, 120, 'RESPAWN', { fontSize: '40px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
 
         respawnBtn.on('pointerdown', () => {
-            respawnBtn.setTint(0xffaaaa);
-            console.log('Respawn clicked');
+            console.log('Mobile Respawn Triggered');
             this.resetGame();
         });
 
-        respawnBtn.on('pointerup', () => respawnBtn.clearTint());
+        // Also allow tapping the background to respawn for maximum ease
+        bg.on('pointerdown', () => {
+            console.log('BG Respawn Triggered');
+            this.resetGame();
+        });
 
         this.gameOverUI.add([bg, this.gameOverText, this.finalKillsText, sub, respawnBtn, respawnLabel]);
-        this.gameOverUI.setDepth(2000);
+        this.gameOverUI.setDepth(5000);
+    }
+
+    createLevelCompleteUI() {
+        this.levelCompleteUI = this.add.container(640, 320).setScrollFactor(0);
+        let bg = this.add.rectangle(0, 0, 1280, 640, 0x000000, 0.7).setInteractive();
+
+        let title = this.add.text(0, -50, 'LEVEL COMPLETE!', { fontSize: '64px', fill: '#ffff00', fontStyle: 'bold' }).setOrigin(0.5);
+
+        let continueBtn = this.add.rectangle(0, 80, 350, 90, 0x00ff00, 1).setInteractive();
+        let continueLabel = this.add.text(0, 80, 'TAP TO CONTINUE', { fontSize: '32px', fill: '#000000', fontStyle: 'bold' }).setOrigin(0.5);
+
+        const nextAction = () => {
+            if (this.currentLevel < 3) {
+                this.scene.restart({
+                    level: this.currentLevel + 1,
+                    kills: this.kills,
+                    health: this.health,
+                    playerStats: {
+                        extraJumps: this.player.extraJumps,
+                        regenLevel: this.player.regenLevel,
+                        extraBullets: this.player.extraBullets,
+                        maxShields: this.player.maxShields,
+                        shields: this.player.shields
+                    }
+                });
+            } else {
+                this.currentState = this.GAME_STATES.GAME_BEATEN;
+                this.levelCompleteUI.setVisible(false);
+                this.add.text(640, 320, 'YOU BEAT THE GAME!\nThanks for Playing', { fontSize: '48px', fill: '#ffff00', align: 'center' }).setOrigin(0.5).setScrollFactor(0);
+            }
+        };
+
+        continueBtn.on('pointerdown', nextAction);
+        bg.on('pointerdown', nextAction);
+
+        this.levelCompleteUI.add([bg, title, continueBtn, continueLabel]);
+        this.levelCompleteUI.setDepth(5000);
     }
 
     createStoreUI() {
