@@ -92,9 +92,9 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
         // Ledge detection (only when on ground)
         if (this.body.blocked.down && this.body.velocity.x !== 0) {
             // Predict the ledge further ahead using a check rectangle
-            const checkWidth = 30;
+            const checkWidth = 10;
             const checkHeight = 40;
-            const checkX = this.direction === 1 ? this.x + 20 : this.x - 20 - checkWidth;
+            const checkX = this.direction === 1 ? this.x + 35 : this.x - 35 - checkWidth;
             const checkY = this.y + 2; // Check just below the feet level
 
             let hasGround = false;

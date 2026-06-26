@@ -671,6 +671,13 @@ export default class GameScene extends Phaser.Scene {
     createStoreUI() {
         this.storeUI = this.add.container(640, 320).setScrollFactor(0).setVisible(false);
         let bg = this.add.rectangle(0, 0, 1280, 640, 0x000000, 0.85).setInteractive(); // Full screen overlay block
+        bg.on('pointerdown', () => {
+            if (this.currentState === this.GAME_STATES.STORE) {
+                this.currentState = this.GAME_STATES.PLAYING;
+                this.storeUI.setVisible(false);
+                this.physics.world.resume();
+            }
+        });
         let frame = this.add.rectangle(0, 0, 500, 400, 0x333333, 1).setStrokeStyle(4, 0xffff00);
 
         let title = this.add.text(0, -150, 'UPGRADE SHOP (PAUSED)', { fontSize: '32px', fill: '#ffff00', fontStyle: 'bold' }).setOrigin(0.5);
